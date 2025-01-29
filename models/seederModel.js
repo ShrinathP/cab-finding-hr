@@ -14,12 +14,12 @@ const seederSchema = new mongoose.Schema(
       required: [true, "Email is required"],
       unique: true,
       lowercase: true,
-      validate: {
-        validator: function (v) {
-          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-        },
-        message: "Please enter a valid email address",
-      },
+      // validate: {
+      //   validator: function (v) {
+      //     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+      //   },
+      //   message: "Please enter a valid email address",
+      // },
     },
     time: {
       type: String,

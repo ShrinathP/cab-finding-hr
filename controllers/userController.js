@@ -4,7 +4,7 @@ const User = require("../models/userModel");
 // POST: Create a new user
 const createUser = async (req, res, next) => {
   try {
-    const { name, email, location, pincode } = req.body;
+    const { user_name: name, user_name: email, location: location } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -14,7 +14,7 @@ const createUser = async (req, res, next) => {
 
     const coordinates = await getCoordinates(location);
     // Create new user
-    const newUser = new User({ name, email, location, pincode, coordinates});
+    const newUser = new User({ name, email, location, coordinates});
     await newUser.save();
 
     res.status(201).json({
@@ -29,6 +29,35 @@ const createUser = async (req, res, next) => {
     next(err); // Pass error to middleware
   }
 };
+
+// const createUser = async (req, res, next) => {
+//   try {
+//     const { name, email, location } = req.body;
+
+//     // Check if user already exists
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       return res.status(400).json({ message: "User already exists" });
+//     }
+
+//     const coordinates = await getCoordinates(location);
+//     // Create new user
+//     const newUser = new User({ name, email, location, coordinates});
+//     await newUser.save();
+
+//     res.status(201).json({
+//       message: "User created successfully",
+//       user: {
+//         id: newUser._id,
+//         name: newUser.name,
+//         email: newUser.email,
+//       },
+//     });
+//   } catch (err) {
+//     next(err); // Pass error to middleware
+//   }
+// };
+
 
 // GET all users
 const getUsers = async (req, res, next) => {

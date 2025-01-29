@@ -1,10 +1,13 @@
 const Seeker = require("../models/seekerModel");
 const match = require("../matchLogic/match")
+const convertTo24Hour = require('../utils/convertTime')
 
 // POST: Create a new user
 const createSeeker = async (req, res, next) => {
   try {
-    const { name, email, time } = req.body;
+    // const { name, email, time } = req.body;
+    let { user_name: name, user_name: email, text: time } = req.body;
+    time = convertTo24Hour(time)
 
     // Check if Seeder already exists
     const seeker = await Seeker.findOne({ email });

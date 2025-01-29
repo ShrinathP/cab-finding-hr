@@ -14,12 +14,12 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Email is required'],
       unique: true,
       lowercase: true,
-      validate: {
-        validator: function (v) {
-          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-        },
-        message: 'Please enter a valid email address',
-      },
+      // validate: {
+      //   validator: function (v) {
+      //     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+      //   },
+      //   message: 'Please enter a valid email address',
+      // },
     },
     location: {
       type: String,
@@ -27,16 +27,6 @@ const userSchema = new mongoose.Schema(
       trim: true,
       minlength: [2, 'Location must be at least 2 characters long'],
       maxlength: [100, 'Location cannot exceed 100 characters'],
-    },
-    pincode: {
-      type: String,
-      required: [true, 'Pincode is required'],
-      validate: {
-        validator: function (v) {
-          return /^[0-9]{6}$/.test(v); // Ensures a 6-digit pincode
-        },
-        message: 'Pincode must be a valid 6-digit number',
-      },
     },
     coordinates: {
       type: Object,

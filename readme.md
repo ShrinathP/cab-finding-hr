@@ -1,5 +1,5 @@
 Mongoose schema
-User -> will feed in name, location, pincode
+User -> will feed in name, location
 
 Seeder -> Will feed the route and the time
 

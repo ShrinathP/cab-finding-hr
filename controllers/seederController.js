@@ -1,14 +1,16 @@
 const Seeder = require("../models/seederModel");
+const convertTo24Hour = require('../utils/convertTime')
 
 // POST: Create a new user
 const createSeeder = async (req, res, next) => {
   try {
-    const { name, email, time } = req.body;
+    let { user_name: name, user_name: email, text: time } = req.body;
+    time = convertTo24Hour(time)
 
-    // Check if Seeder already exists
+    // Check if Seeder already exists 
     const seeder = await Seeder.findOne({ email });
     if (seeder) {
-      await seeder.deleteOne({ email: email });
+      await seeder.deleteOne({ 'email': email });
       // return res.status(400).json({ message: "Seeker already exists" });
     }
 
@@ -29,7 +31,37 @@ const createSeeder = async (req, res, next) => {
   }
 };
 
+// const createSeeder = async (req, res, next) => {
+//   try {
+//     const { name, email, time } = req.body;
+//     convertTo24Hour
+
+//     // Check if Seeder already exists
+//     const seeder = await Seeder.findOne({ email });
+//     if (seeder) {
+//       await seeder.deleteOne({ email: email });
+//       // return res.status(400).json({ message: "Seeker already exists" });
+//     }
+
+//     // Create newSeeder
+//     const newSeeder = new Seeder({ name, email, time });
+//     await newSeeder.save();
+
+//     res.status(201).json({
+//       message: "Seeder created successfully",
+//       seeder: {
+//         id: newSeeder._id,
+//         name: newSeeder.name,
+//         email: newSeeder.email,
+//       },
+//     });
+//   } catch (err) {
+//     next(err); // Pass error to middleware
+//   }
+// };
+
 // GET all seeders
+
 const getSeeders = async (req, res, next) => {
   try {
     const seeders = await Seeder.find(); // Fetch all users

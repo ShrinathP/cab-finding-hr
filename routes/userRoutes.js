@@ -21,18 +21,18 @@ const { runMatch
 const router = express.Router();
 
 // Users Endpoint
-router.post("/users", createUser);
+router.post("/users", express.urlencoded({ extended: true }), createUser);
 router.get("/users", getUsers);
 router.get("/users/:email", getUserByName);
 router.delete("/users/:email", deleteUserByName);
 
 // Seeders Endpoint
-router.post("/seeders", createSeeder);
+router.post("/seeders", express.urlencoded({ extended: true }), createSeeder);
 router.get("/seeders", getSeeders);
 router.get("/seeders/:email", getSeederByName);
 router.delete("/seeders/:email", deleteSeederByName);
 
-router.post("/seekers", createSeeker);
+router.post("/seekers", express.urlencoded({ extended: true }),  createSeeker);
 router.get("/seekers", getSeekers);
 router.get("/seekers/:email", getSeekerByName);
 router.delete("/seekers/:email", deleteSeekerByName);
