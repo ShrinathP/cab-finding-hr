@@ -67,9 +67,10 @@ const matchSeeker = async (seekername = seekeremail, seekeremail, seekertime) =>
 
     })
     
-    const onRoutesArray = await Promise.all(onRoutesPromiseArray)
+    let onRoutesArray = await Promise.allSettled(onRoutesPromiseArray)
+    onRoutesArray = onRoutesArray.filter(result => result.status == "fulfilled")
     console.log("Shrinath", onRoutesArray);
-    return onRoutesArray.filter(person => person.isMatch == true)
+    return onRoutesArray.map(v => v.value).filter(person => person.isMatch === true)
     
     
   } catch (error) {
