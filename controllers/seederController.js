@@ -11,6 +11,7 @@ const createSeeder = async (req, res, next) => {
     // Check if the Seeder is a Registered User
     const user = await User.findOne({ email });
     if (!user) {
+      return res.send("The user is not registered, please make sure, you register using POST api");
       return res.status(400).json({
         message:
           "The user is not registered, please make sure, you register using POST api",

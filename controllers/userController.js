@@ -14,7 +14,7 @@ const createUser = async (req, res, next) => {
 
     const coordinates = await getCoordinates(location);
     // Create new user
-    const newUser = new User({ name, email, location, coordinates});
+    const newUser = new User({ name, email, location, coordinates });
     await newUser.save();
 
     res.status(201).json({
@@ -57,7 +57,6 @@ const createUser = async (req, res, next) => {
 //     next(err); // Pass error to middleware
 //   }
 // };
-
 
 // GET all users
 const getUsers = async (req, res, next) => {

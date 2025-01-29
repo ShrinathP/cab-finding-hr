@@ -13,6 +13,7 @@ const createSeeker = async (req, res, next) => {
     // Check if the Seeder is a Registered User
     const user = await User.findOne({ email });
     if (!user) {
+      return res.send("The user is not registered, please make sure, you register using POST api");
       return res.status(400).json({
         message:
           "The user is not registered, please make sure, you register using POST api",
@@ -36,7 +37,8 @@ const createSeeker = async (req, res, next) => {
     if (result.length == 0) {
       responseMessage = "We haven't got any car pool match for you right away. We will message you as and when we get one.";
     } else {
-      const list = result.map(person => person.name)
+      // const list = result.map(person => person.name)
+      
       // responseMessage = "We have got a car pool match for you with <user1> and <user2>. You can connect with them over Slack.";
       responseMessage = "We have got a car pool match for you with "+ list + ". You can connect with them over Slack.";
     }
