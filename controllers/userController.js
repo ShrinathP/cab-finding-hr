@@ -6,8 +6,10 @@ const createUser = async (req, res, next) => {
   try {
 
     const { text } = req.body;
-    const [name, location] = text.split(' ');
+    const [name, ...rest] = text.split(' ');
+    const location = rest.join(' ');
     const email = name
+
     // const name, email = user_name
     // const { user_name: name, user_name: email, location: location } = req.body;
 
