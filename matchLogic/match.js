@@ -65,10 +65,11 @@ const matchSeeker = async (seekername = seekeremail, seekeremail, seekertime) =>
       return {name: seederdata.name, isMatch: isRouteMatch}
 
     })
-
     
     const onRoutesArray = await Promise.all(onRoutesPromiseArray)
-    return onRoutesArray
+    console.log("Shrinath", onRoutesArray);
+    return onRoutesArray.filter(person => person.isMatch == true)
+    
     
   } catch (error) {
     console.error("Error finding a Seeder for the Seeker:", error.message);

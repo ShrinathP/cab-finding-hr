@@ -1,6 +1,7 @@
 const Seeker = require("../models/seekerModel");
 const match = require("../matchLogic/match")
 const convertTo24Hour = require('../utils/convertTime')
+const User = require("../models/userModel");
 
 // POST: Create a new user
 const createSeeker = async (req, res, next) => {
@@ -8,6 +9,15 @@ const createSeeker = async (req, res, next) => {
     // const { name, email, time } = req.body;
     let { user_name: name, user_name: email, text: time } = req.body;
     time = convertTo24Hour(time)
+
+    // Check if the Seeder is a Registered User
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        message:
+          "The user is not registered, please make sure, you register using POST api",
+      });
+    }
 
     // Check if Seeder already exists
     const seeker = await Seeker.findOne({ email });
@@ -22,14 +32,25 @@ const createSeeker = async (req, res, next) => {
 
     const result = await match.matchSeeker(name, email, time);
 
+    let responseMessage;
+    if (result.length == 0) {
+      responseMessage = "We haven't got any car pool match for you right away. We will message you as and when we get one.";
+    } else {
+      const list = result.map(person => person.name)
+      // responseMessage = "We have got a car pool match for you with <user1> and <user2>. You can connect with them over Slack.";
+      responseMessage = "We have got a car pool match for you with "+ list + ". You can connect with them over Slack.";
+    }
+    
+    
+
     res.status(201).json({
-      message: "Seeker created successfully",
-      seeker: {
-        id: newSeeker._id,
-        name: newSeeker.name,
-        email: newSeeker.email,
-      },
-      matchedSeeders: result
+      message: responseMessage
+      // seeker: {
+      //   id: newSeeker._id,
+      //   name: newSeeker.name,
+      //   email: newSeeker.email,
+      // },
+      // matchedSeeders: result
     });
   } catch (err) {
     next(err); // Pass error to middleware

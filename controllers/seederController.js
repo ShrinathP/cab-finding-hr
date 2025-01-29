@@ -1,16 +1,26 @@
 const Seeder = require("../models/seederModel");
-const convertTo24Hour = require('../utils/convertTime')
+const User = require("../models/userModel");
+const convertTo24Hour = require("../utils/convertTime");
 
 // POST: Create a new user
 const createSeeder = async (req, res, next) => {
   try {
     let { user_name: name, user_name: email, text: time } = req.body;
-    time = convertTo24Hour(time)
+    time = convertTo24Hour(time);
 
-    // Check if Seeder already exists 
+    // Check if the Seeder is a Registered User
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        message:
+          "The user is not registered, please make sure, you register using POST api",
+      });
+    }
+
+    // Check if Seeder already exists
     const seeder = await Seeder.findOne({ email });
     if (seeder) {
-      await seeder.deleteOne({ 'email': email });
+      await seeder.deleteOne({ email: email });
       // return res.status(400).json({ message: "Seeker already exists" });
     }
 
@@ -19,12 +29,14 @@ const createSeeder = async (req, res, next) => {
     await newSeeder.save();
 
     res.status(201).json({
-      message: "Seeder created successfully",
-      seeder: {
-        id: newSeeder._id,
-        name: newSeeder.name,
-        email: newSeeder.email,
-      },
+      message:
+        "We have successfully registered your offer and will share your " +
+        "info with those who are looking to take a car pool if their locality comes across your route.",
+      // seeder: {
+      //   id: newSeeder._id,
+      //   name: newSeeder.name,
+      //   email: newSeeder.email,
+      // },
     });
   } catch (err) {
     next(err); // Pass error to middleware
