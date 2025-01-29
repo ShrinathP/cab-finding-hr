@@ -4,7 +4,12 @@ const User = require("../models/userModel");
 // POST: Create a new user
 const createUser = async (req, res, next) => {
   try {
-    const { user_name: name, user_name: email, location: location } = req.body;
+
+    const { text } = req.body;
+    const [name, location] = text.split(' ');
+    const email = name
+    // const name, email = user_name
+    // const { user_name: name, user_name: email, location: location } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
