@@ -11,7 +11,9 @@ const createSeeder = async (req, res, next) => {
     // Check if the Seeder is a Registered User
     const user = await User.findOne({ email });
     if (!user) {
-      return res.send("The user is not registered, please make sure, you register using POST api");
+      return res.send(
+        "The user is not registered, please make sure, you register using POST api"
+      );
       return res.status(400).json({
         message:
           "The user is not registered, please make sure, you register using POST api",
@@ -30,14 +32,16 @@ const createSeeder = async (req, res, next) => {
     await newSeeder.save();
 
     res.status(201).json({
-      message:
-        "We have successfully registered your offer and will share your " +
-        "info with those who are looking to take a car pool if their locality comes across your route.",
-      // seeder: {
-      //   id: newSeeder._id,
-      //   name: newSeeder.name,
-      //   email: newSeeder.email,
-      // },
+      response_type: "in_channel",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `We have successfully registered your offer and will share your info with those who are looking to take a car pool if their locality comes across your route.`,
+          },
+        },
+      ],
     });
   } catch (err) {
     next(err); // Pass error to middleware
