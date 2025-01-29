@@ -4,11 +4,10 @@ const User = require("../models/userModel");
 // POST: Create a new user
 const createUser = async (req, res, next) => {
   try {
-
     const { text } = req.body;
-    const [name, ...rest] = text.split(' ');
-    const location = rest.join(' ');
-    const email = name
+    const [name, ...rest] = text.split(" ");
+    const location = rest.join(" ");
+    const email = name;
 
     // const name, email = user_name
     // const { user_name: name, user_name: email, location: location } = req.body;
@@ -25,12 +24,16 @@ const createUser = async (req, res, next) => {
     await newUser.save();
 
     res.status(201).json({
-      message: "User created successfully",
-      user: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-      },
+      response_type: "in_channel",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: "You have been registered successfully. Use `*/offer-ride [time]*` command to offer rides and `*/find-ride [time]*` to get any available car pool options.",
+          },
+        },
+      ],
     });
   } catch (err) {
     next(err); // Pass error to middleware
