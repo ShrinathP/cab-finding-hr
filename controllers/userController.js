@@ -1,4 +1,5 @@
 const getCoordinates = require("../locationLogic/getCoordinates");
+const getCoordinatesGraphHopper = require("../locationLogic/getCoordinatesGraphHopper");
 const User = require("../models/userModel");
 
 // POST: Create a new user
@@ -18,7 +19,8 @@ const createUser = async (req, res, next) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const coordinates = await getCoordinates(location);
+    // const coordinates = await getCoordinates(location);
+    const coordinates = await getCoordinatesGraphHopper(location);
     // Create new user
     const newUser = new User({ name, email, location, coordinates });
     await newUser.save();

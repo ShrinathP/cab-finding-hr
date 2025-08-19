@@ -1,4 +1,5 @@
 const RouteLocationChecker = require("./RouteLocationChecker");
+const RouteLocationCheckerGraphHopper = require("./RouteLocationCheckerGraphHopper");
 const getCoordinates = require("./getCoordinates");
 
 // Initialize RouteLocationChecker with Google API Key
@@ -12,7 +13,8 @@ const isOnRoute = async (
   locationXAddress
 ) => {
   const apiKey = process.env.API_KEY;
-  const routeChecker = new RouteLocationChecker(apiKey);
+  // const routeChecker = new RouteLocationCheckerGraphHopper(apiKey);
+  const routeChecker = new RouteLocationCheckerGraphHopper();
   // destinationCoordinates can be calculated and kept in db only while creating User Model
   // const destinationCoordinates = await getCoordinates(destinationAddress);
 

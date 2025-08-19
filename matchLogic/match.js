@@ -30,7 +30,8 @@ const matchSeeker = async (seekername = seekeremail, seekeremail, seekertime) =>
     // Check if time within 30 mins
     // Time Match --->>>
     const timeNow = getIstTimeNow();
-    const timeMatchSeeders = seeders.filter(seeder => (0 < (seeder.time.split(":")[0] - seekertime.split(":")[0]) < 30))
+    // const timeMatchSeeders = seeders.filter(seeder => (0 < (seeder.time.split(":")[0] - seekertime.split(":")[0]) < 30))
+    const timeMatchSeeders = seeders
 
     //get all Seeder Addresses
     const seedersUserInfoArray = await Promise.all(
@@ -56,7 +57,7 @@ const matchSeeker = async (seekername = seekeremail, seekeremail, seekertime) =>
       const destinationAddress = seederdata.coordinates;
       // const pickupAddress = "Prestige Tech Park Kadubeesanahalli, Bengaluru, Karnataka 560103";
       // Adding coordinated to Prestige Tech Park directly - to avoid getCoordinates call
-      const pickupAddress = { lat: 12.9432425, lng: 77.69190569999999 };
+      const pickupAddress = { lat: 12.943242, lng: 77.691905 };
       const locationXAddress = seekeraddress;
       const isRouteMatch =  await isOnRoute(
         pickupAddress,
