@@ -19,26 +19,83 @@ const createUser = async (req, res, next) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // const coordinates = await getCoordinates(location);
-    const coordinates = await getCoordinatesGraphHopper(location);
-    // Create new user
-    const newUser = new User({ name, email, location, coordinates });
-    await newUser.save();
-
-    res.status(201).json({
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+    const response = ({
       response_type: "in_channel",
       blocks: [
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: "You have been registered successfully. Use `*/offer-ride [time]*` command to offer rides and `*/find-ride [time]*` to get any available car pool options.",
+            text: `👋 *${name}*'s location: <${mapsUrl}|📍 View on Google Maps>\n`
           },
         },
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: "Is this the correct location?"
+          }
+        },
+        {
+          type: "actions",
+          block_id: "location_confirmation",
+          elements: [
+            {
+              type: "button",
+              text: { type: "plain_text", text: "✅ Yes" },
+              style: "primary",
+              value: JSON.stringify({ name, location }),
+              action_id: "confirm_location"
+            },
+            {
+              type: "button",
+              text: { type: "plain_text", text: "❌ No" },
+              style: "danger",
+              value: JSON.stringify({ name, location }),
+              action_id: "reject_location"
+            }
+          ]
+        }
       ],
     });
+    return res.json(response);
   } catch (err) {
     next(err); // Pass error to middleware
+  }
+};
+
+const axios = require("axios");
+
+const confirmUser = async (req, res, next) => {
+  try {
+    const payload = JSON.parse(req.body.payload);
+    const action = payload.actions[0];
+    const { name, location } = JSON.parse(action.value);
+
+    // Acknowledge the interaction immediately
+    res.sendStatus(200);
+
+    let messageText;
+    if (action.action_id === "confirm_location") {
+      // Create new user
+      const coordinates = await getCoordinates(location);
+      const email = name;
+      const newUser = new User({ name, email, location, coordinates });
+      await newUser.save();
+      messageText = `✅ Location for *${name}* confirmed: ${location}\n\nYou have been registered successfully. Use \`/offer-ride [time]\` to offer rides and \`/find-ride [time]\` to find car pool options.`;
+    } else {
+      messageText = "❌ Location was rejected. Please re-enter with the correct address.";
+    }
+
+    // Send response using response_url
+    await axios.post(payload.response_url, {
+      response_type: "in_channel",
+      replace_original: true,
+      text: messageText,
+    });
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -125,6 +182,7 @@ const deleteUserByName = async (req, res) => {
 
 module.exports = {
   createUser,
+  confirmUser,
   getUsers,
   getUserByName,
   deleteUserByName,
