@@ -1,6 +1,7 @@
 const express = require("express");
 const {
   createUser,
+  confirmUser,
   getUsers,
   getUserByName,
   deleteUserByName,
@@ -22,6 +23,7 @@ const router = express.Router();
 
 // Users Endpoint
 router.post("/users", express.urlencoded({ extended: true }), createUser);
+router.post("/confirm/user", express.urlencoded({ extended: true }), confirmUser);
 router.get("/users", getUsers);
 router.get("/users/:email", getUserByName);
 router.delete("/users/:email", deleteUserByName);
