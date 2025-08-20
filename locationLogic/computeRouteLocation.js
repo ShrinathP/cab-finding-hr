@@ -12,9 +12,15 @@ const isOnRoute = async (
   destinationAddress,
   locationXAddress
 ) => {
+  const GEOCODING_PROVIDER = process.env.GEOCODING_PROVIDER || 'google'; // 'google' or 'opensource'
   const apiKey = process.env.API_KEY;
-  // const routeChecker = new RouteLocationCheckerGraphHopper(apiKey);
-  const routeChecker = new RouteLocationCheckerGraphHopper();
+  let routeChecker = null;
+    // if (GEOCODING_PROVIDER === 'opensource') {
+    //   routeChecker = new RouteLocationCheckerGraphHopper();
+    // } else {
+      routeChecker = new RouteLocationChecker(apiKey);
+    // }
+  // 
   // destinationCoordinates can be calculated and kept in db only while creating User Model
   // const destinationCoordinates = await getCoordinates(destinationAddress);
 

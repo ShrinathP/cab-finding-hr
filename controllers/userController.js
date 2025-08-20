@@ -1,24 +1,40 @@
 const getCoordinates = require("../locationLogic/getCoordinates");
 const getCoordinatesGraphHopper = require("../locationLogic/getCoordinatesGraphHopper");
 const { getLocationSuggestions, getCoordinatesFromPlaceId } = require("../locationLogic/getLocationSuggestions");
+const { getLocationSuggestionsPhoton, getCoordinatesFromPlaceIdPhoton } = require("../locationLogic/getLocationSuggestionsPhoton");
 const User = require("../models/userModel");
+
+// Configuration flag to choose between Google Maps and Photon API
+// You can set this via environment variable: GEOCODING_PROVIDER=photon or GEOCODING_PROVIDER=google
+const getCurrentGeocodingProvider = () => {
+  return process.env.GEOCODING_PROVIDER || 'google'; // 'google' or 'opensource'
+};
+
+
+
+// Helper function to get location suggestions based on the configured provider
+const getLocationSuggestionsForProvider = (address, maxResults = 5) => {
+  const provider = getCurrentGeocodingProvider(); //Returns 'google' or 'opensource'
+  if (provider === 'opensource') {
+    return getLocationSuggestionsPhoton(address, maxResults);
+  } else {
+    return getLocationSuggestions(address, maxResults);
+  }
+};
 
 // POST: Create a new user
 const createUser = async (req, res, next) => {
   try {
-    const { text } = req.body;
-    const [name, ...rest] = text.split(" ");
-    const location = rest.join(" ");
-    const email = name;
+    let { user_name: name, user_name: email, text: location } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+    if (existingUser && existingUser.location.includes(location)) {
+      return res.status(400).json({ message: "User already exists with the same location, please use another location" });
     }
 
-    // Get location suggestions from Google Maps
-    const locationSuggestions = await getLocationSuggestions(location, 5);
+    // Get location suggestions from configured provider (Google Maps or Photon)
+    const locationSuggestions = await getLocationSuggestionsForProvider(location, 5);
 
     if (locationSuggestions.length === 0) {
       return res.json({
@@ -58,7 +74,7 @@ const createUser = async (req, res, next) => {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `🔍 Search term: "*${location}*"\n📍 Found ${locationSuggestions.length} location(s):`
+          text: `🔍 Search term: "*${location}*"\n📍 Found ${locationSuggestions.length} location(s) using *${getCurrentGeocodingProvider().toUpperCase()}* API:`
         }
       }
     ];
@@ -119,6 +135,7 @@ const createUser = async (req, res, next) => {
 
 const axios = require("axios");
 
+
 const confirmUser = async (req, res, next) => {
   try {
     const payload = JSON.parse(req.body.payload);
@@ -137,13 +154,32 @@ const confirmUser = async (req, res, next) => {
 
       try {
         // Create new user with the selected location
-        const newUser = new User({ 
-          name, 
-          email, 
-          location, 
-          coordinates 
-        });
-        await newUser.save();
+        // const newUser = new User({ 
+        //   name, 
+        //   email, 
+        //   location, 
+        //   coordinates 
+        // });
+        // await newUser.save();
+
+
+          // Use upsert to create or update user
+        const user = await User.findOneAndUpdate(
+          { email }, // Find by email
+          { 
+            name, 
+            email, 
+            location, 
+            coordinates 
+          }, // Update with this data
+          { 
+            upsert: true, // Create if doesn't exist
+            new: true,    // Return updated document
+            runValidators: true 
+          }
+        );
+
+        
 
         const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
         messageText = `✅ Location for *${name}* confirmed!\n\n📍 **Selected Location:** ${location}\n🔗 <${mapsUrl}|View on Google Maps>\n\n🎉 You have been registered successfully!\n\n**Next Steps:**\n• Use \`/offer-ride [time]\` to offer rides\n• Use \`/find-ride [time]\` to find carpool options`;
@@ -156,25 +192,6 @@ const confirmUser = async (req, res, next) => {
     else if (action.action_id === "cancel_location_selection") {
       const { name } = actionData;
       messageText = `❌ Registration cancelled for *${name}*. Please use the command again with a different location if you'd like to register.`;
-    }
-    // Handle legacy confirm/reject actions (for backward compatibility)
-    else if (action.action_id === "confirm_location") {
-      const { name, location } = actionData;
-      
-      try {
-        // Create new user using the old flow
-        const coordinates = await getCoordinates(location);
-        const email = name;
-        const newUser = new User({ name, email, location, coordinates });
-        await newUser.save();
-        messageText = `✅ Location for *${name}* confirmed: ${location}\n\nYou have been registered successfully. Use \`/offer-ride [time]\` to offer rides and \`/find-ride [time]\` to find car pool options.`;
-      } catch (error) {
-        console.error('Error creating user:', error);
-        messageText = `❌ Error creating user: ${error.message}. Please try again.`;
-      }
-    } 
-    else if (action.action_id === "reject_location") {
-      messageText = "❌ Location was rejected. Please re-enter with the correct address.";
     }
     else {
       messageText = "❌ Unknown action. Please try again.";

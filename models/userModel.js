@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Location is required'],
       trim: true,
       minlength: [2, 'Location must be at least 2 characters long'],
-      maxlength: [100, 'Location cannot exceed 100 characters'],
+      maxlength: [200, 'Location cannot exceed 100 characters'],
     },
     coordinates: {
       type: Object,
