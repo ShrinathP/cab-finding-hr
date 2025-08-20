@@ -1,5 +1,6 @@
 const getCoordinates = require("../locationLogic/getCoordinates");
 const getCoordinatesGraphHopper = require("../locationLogic/getCoordinatesGraphHopper");
+const { getLocationSuggestions, getCoordinatesFromPlaceId } = require("../locationLogic/getLocationSuggestions");
 const User = require("../models/userModel");
 
 // POST: Create a new user
@@ -10,57 +11,108 @@ const createUser = async (req, res, next) => {
     const location = rest.join(" ");
     const email = name;
 
-    // const name, email = user_name
-    // const { user_name: name, user_name: email, location: location } = req.body;
-
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
-    const response = ({
-      response_type: "in_channel",
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `👋 *${name}*'s location: <${mapsUrl}|📍 View on Google Maps>\n`
-          },
+    // Get location suggestions from Google Maps
+    const locationSuggestions = await getLocationSuggestions(location, 5);
+
+    if (locationSuggestions.length === 0) {
+      return res.json({
+        response_type: "in_channel",
+        text: `❌ No locations found for "${location}". Please try a different search term.`,
+      });
+    }
+
+    // Create buttons for each location suggestion
+    const locationButtons = locationSuggestions.map((suggestion, index) => ({
+      type: "button",
+      text: {
+        type: "plain_text",
+        text: `${index + 1}. ${suggestion.display_name}`,
+        emoji: true
+      },
+      style: index === 0 ? "primary" : undefined, // Highlight first option
+      value: JSON.stringify({
+        name,
+        location: suggestion.formatted_address,
+        place_id: suggestion.place_id,
+        coordinates: suggestion.coordinates
+      }),
+      action_id: `select_location_${suggestion.id}`
+    }));
+
+    // Create blocks for the response
+    const blocks = [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `👋 *${name}*, please select your location from the options below:`
         },
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: "Is this the correct location?"
-          }
-        },
-        {
-          type: "actions",
-          block_id: "location_confirmation",
-          elements: [
-            {
-              type: "button",
-              text: { type: "plain_text", text: "✅ Yes" },
-              style: "primary",
-              value: JSON.stringify({ name, location }),
-              action_id: "confirm_location"
-            },
-            {
-              type: "button",
-              text: { type: "plain_text", text: "❌ No" },
-              style: "danger",
-              value: JSON.stringify({ name, location }),
-              action_id: "reject_location"
-            }
-          ]
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `🔍 Search term: "*${location}*"\n📍 Found ${locationSuggestions.length} location(s):`
         }
-      ],
+      }
+    ];
+
+    // Add location details as context
+    const locationDetailsText = locationSuggestions.map((suggestion, index) => 
+      `${index + 1}. ${suggestion.formatted_address}`
+    ).join('\n');
+
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `\`\`\`${locationDetailsText}\`\`\``
+      }
     });
+
+    // Add action buttons (split into chunks of 5 due to Slack limitations)
+    const buttonChunks = [];
+    for (let i = 0; i < locationButtons.length; i += 5) {
+      buttonChunks.push(locationButtons.slice(i, i + 5));
+    }
+
+    buttonChunks.forEach((chunk, chunkIndex) => {
+      blocks.push({
+        type: "actions",
+        block_id: `location_selection_${chunkIndex}`,
+        elements: chunk
+      });
+    });
+
+    // Add cancel option
+    blocks.push({
+      type: "actions",
+      block_id: "location_cancel",
+      elements: [
+        {
+          type: "button",
+          text: { type: "plain_text", text: "❌ Cancel" },
+          style: "danger",
+          value: JSON.stringify({ name }),
+          action_id: "cancel_location_selection"
+        }
+      ]
+    });
+
+    const response = {
+      response_type: "in_channel",
+      blocks: blocks,
+    };
+
     return res.json(response);
   } catch (err) {
+    console.error('Error in createUser:', err);
     next(err); // Pass error to middleware
   }
 };
@@ -71,21 +123,61 @@ const confirmUser = async (req, res, next) => {
   try {
     const payload = JSON.parse(req.body.payload);
     const action = payload.actions[0];
-    const { name, location } = JSON.parse(action.value);
+    const actionData = JSON.parse(action.value);
 
     // Acknowledge the interaction immediately
     res.sendStatus(200);
 
     let messageText;
-    if (action.action_id === "confirm_location") {
-      // Create new user
-      const coordinates = await getCoordinates(location);
+
+    // Handle location selection
+    if (action.action_id.startsWith("select_location_")) {
+      const { name, location, place_id, coordinates } = actionData;
       const email = name;
-      const newUser = new User({ name, email, location, coordinates });
-      await newUser.save();
-      messageText = `✅ Location for *${name}* confirmed: ${location}\n\nYou have been registered successfully. Use \`/offer-ride [time]\` to offer rides and \`/find-ride [time]\` to find car pool options.`;
-    } else {
+
+      try {
+        // Create new user with the selected location
+        const newUser = new User({ 
+          name, 
+          email, 
+          location, 
+          coordinates 
+        });
+        await newUser.save();
+
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+        messageText = `✅ Location for *${name}* confirmed!\n\n📍 **Selected Location:** ${location}\n🔗 <${mapsUrl}|View on Google Maps>\n\n🎉 You have been registered successfully!\n\n**Next Steps:**\n• Use \`/offer-ride [time]\` to offer rides\n• Use \`/find-ride [time]\` to find carpool options`;
+      } catch (error) {
+        console.error('Error creating user:', error);
+        messageText = `❌ Error creating user: ${error.message}. Please try again.`;
+      }
+    } 
+    // Handle cancel action
+    else if (action.action_id === "cancel_location_selection") {
+      const { name } = actionData;
+      messageText = `❌ Registration cancelled for *${name}*. Please use the command again with a different location if you'd like to register.`;
+    }
+    // Handle legacy confirm/reject actions (for backward compatibility)
+    else if (action.action_id === "confirm_location") {
+      const { name, location } = actionData;
+      
+      try {
+        // Create new user using the old flow
+        const coordinates = await getCoordinates(location);
+        const email = name;
+        const newUser = new User({ name, email, location, coordinates });
+        await newUser.save();
+        messageText = `✅ Location for *${name}* confirmed: ${location}\n\nYou have been registered successfully. Use \`/offer-ride [time]\` to offer rides and \`/find-ride [time]\` to find car pool options.`;
+      } catch (error) {
+        console.error('Error creating user:', error);
+        messageText = `❌ Error creating user: ${error.message}. Please try again.`;
+      }
+    } 
+    else if (action.action_id === "reject_location") {
       messageText = "❌ Location was rejected. Please re-enter with the correct address.";
+    }
+    else {
+      messageText = "❌ Unknown action. Please try again.";
     }
 
     // Send response using response_url
@@ -95,6 +187,7 @@ const confirmUser = async (req, res, next) => {
       text: messageText,
     });
   } catch (err) {
+    console.error('Error in confirmUser:', err);
     next(err);
   }
 };
