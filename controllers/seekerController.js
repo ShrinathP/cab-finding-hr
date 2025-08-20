@@ -44,7 +44,9 @@ const createSeeker = async (req, res, next) => {
     if (result.length == 0) {
       responseMessage = "We haven't got any car pool match for you right away. We will message you as and when we get one.";
     } else {
-      const list = result.map(person => `${person.name}@nutanix.com`)
+      const list = result
+        .filter((s) => !s.name.includes(email))
+        .map((person) => `${person.name}@nutanix.com`);
       // Using slice and join with comma, join the last element using AND
       const outputString = list.slice(0, -1).join(', ') + (list.length > 1 ? ' and ' : '') + list.slice(-1);
       responseMessage = "We have got a car pool match for you with "+ `${outputString}` + ". You can connect with them over Slack.";
