@@ -1,14 +1,10 @@
 const User = require("../models/userModel");
 const Seeder = require("../models/seederModel");
 const isOnRoute = require("../locationLogic/computeRouteLocation");
+const convertTo24Hour = require("../utils/convertTime");
 
 const matchSeeker = async (seekername = seekeremail, seekeremail, seekertime) => {
   try {
-    if (!seekeremail) {
-      // return res.status(400).json({ message: 'Please provide a name or email to search.' });
-      return "Missing seekername or seeder name";
-    }
-
     //  GET Seeker Address
     // Search for user by name or email
     const user = await User.findOne({
@@ -17,9 +13,9 @@ const matchSeeker = async (seekername = seekeremail, seekeremail, seekertime) =>
         { email: seekeremail },
       ],
     });
-
+    
     if (!user) {
-      console.log("No seeker found, ensure youre registered");
+      throw new Error("You haven\'t registered yet, please register using \'/users [location]\' api");
     }
 
     const seekeraddress = user.coordinates;
@@ -27,11 +23,9 @@ const matchSeeker = async (seekername = seekeremail, seekeremail, seekertime) =>
     // Get all Seeders
     const seeders = await Seeder.find({ count: 0 }); // Fetch all seeders
 
-    // Check if time within 30 mins
-    // Time Match --->>>
-    const timeNow = getIstTimeNow();
-    // const timeMatchSeeders = seeders.filter(seeder => (0 < (seeder.time.split(":")[0] - seekertime.split(":")[0]) < 30))
-    const timeMatchSeeders = seeders
+    // Time match
+    // Check if time within 2 hrs
+    const timeMatchSeeders = seeders.filter(seeder => isTimeDifferenceValid(seekertime, seeder.time, 120))
 
     //get all Seeder Addresses
     const seedersUserInfoArray = await Promise.all(
@@ -44,14 +38,11 @@ const matchSeeker = async (seekername = seekeremail, seekeremail, seekertime) =>
             { email: seederemail },
           ],
         });
-        // console.log(seederinfo);
         return seederinfo;
       })
     );
 
     // Create MatcherArray
-    
-
     const onRoutesPromiseArray = seedersUserInfoArray.map(async seederdata => {
       // const destinationAddress = seederdata.location;
       const destinationAddress = seederdata.coordinates;
@@ -79,20 +70,37 @@ const matchSeeker = async (seekername = seekeremail, seekeremail, seekertime) =>
   }
 };
 
-const getIstTimeNow = () => {
-  let currentTime = new Date();
+// const getIstTimeNow = () => {
+//   let currentTime = new Date();
 
-  let currentOffset = currentTime.getTimezoneOffset();
+//   let currentOffset = currentTime.getTimezoneOffset();
 
-  let ISTOffset = 330;   // IST offset UTC +5:30 
+//   let ISTOffset = 330;   // IST offset UTC +5:30 
 
-  let ISTTime = new Date(currentTime.getTime() + (ISTOffset + currentOffset)*60000);
+//   let ISTTime = new Date(currentTime.getTime() + (ISTOffset + currentOffset)*60000);
 
-// ISTTime now represents the time in IST coordinates
+// // ISTTime now represents the time in IST coordinates
 
-let hoursIST = ISTTime.getHours()
-let minutesIST = ISTTime.getMinutes()
-return {hrs: hoursIST, mins: minutesIST}
+// let hoursIST = ISTTime.getHours()
+// let minutesIST = ISTTime.getMinutes()
+// return {hrs: hoursIST, mins: minutesIST}
+// }
+
+function isTimeDifferenceValid(startTime, endTime, thresholdMinutes = 120) {
+    // Parse time strings to get hours and minutes
+    const parseTime = (timeStr) => {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + minutes; // Convert to total minutes
+    };
+    
+    const startMinutes = parseTime(startTime);
+    const endMinutes = parseTime(endTime);
+    
+    // Calculate difference in minutes
+    let diffMinutes = endMinutes - startMinutes;
+    
+    // Check if difference is between 0 and thresholdMinutes
+    return diffMinutes >= 0 && diffMinutes <= thresholdMinutes;
 }
 
 module.exports = {

@@ -41,8 +41,6 @@ const isOnRoute = async (
       locationXAddress
     );
 
-    // console.log("Shrinathhhh", isOnRoute);
-
     return isOnRoute;
   } catch (error) {
     console.error("Error:", error.message);

@@ -6,7 +6,6 @@ const User = require("../models/userModel");
 // POST: Create a new user
 const createSeeker = async (req, res, next) => {
   try {
-    // const { name, email, time } = req.body;
     let { user_name: name, user_name: email, text: time } = req.body;
     time = convertTo24Hour(time)
 
@@ -31,15 +30,15 @@ const createSeeker = async (req, res, next) => {
     const seeker = await Seeker.findOne({ email });
     if (seeker) {
       await seeker.deleteOne({ email: email });
-      // return res.status(400).json({ message: "Seeker already exists" });
+      // silent delete the seeker
     }
 
-    // Create newSeeder
+    // Create newSeeker
     const newSeeker = new Seeker({ name, email, time });
     await newSeeker.save();
 
     const result = await match.matchSeeker(name, email, time);
-
+    // console.log('Shrinath' + result);
     let responseMessage;
     if (result.length == 0) {
       responseMessage = "We haven't got any car pool match for you right away. We will message you as and when we get one.";

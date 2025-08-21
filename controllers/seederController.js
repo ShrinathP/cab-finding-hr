@@ -29,7 +29,6 @@ const createSeeder = async (req, res, next) => {
     const seeder = await Seeder.findOne({ email });
     if (seeder) {
       await seeder.deleteOne({ email: email });
-      // return res.status(400).json({ message: "Seeker already exists" });
     }
 
     // Create newSeeder
