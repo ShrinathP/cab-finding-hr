@@ -30,7 +30,18 @@ const createUser = async (req, res, next) => {
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser && existingUser.location.includes(location)) {
-      return res.status(400).json({ message: "User already exists with the same location, please use another location" });
+      return res.status(200).json({
+        response_type: "in_channel",
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: "User already exists with the same location, please use another location.",
+            },
+          },
+        ],
+      });
     }
 
     // Get location suggestions from configured provider (Google Maps or Photon)
