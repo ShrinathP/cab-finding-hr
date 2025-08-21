@@ -1,4 +1,7 @@
 function convertTo24Hour(timeStr) {
+    if(!timeStr){
+        throw new Error("Please enter time in the format of HH:mm AM/PM");
+    }
     // Use regex to extract hours and period (AM/PM)
     const match = timeStr.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/i);
     
