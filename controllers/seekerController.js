@@ -104,14 +104,26 @@ const getSeekerByName = async (req, res, next) => {
   }
 };
 
-const deleteSeekerByName = async (req, res) => {
+const deleteSeekerByName = async (req, res, next) => {
   try {
-    const { email } = req.params; // Extract user ID from the route parameters
+    const { user_name: email } = req.body; // Extract user ID from the route parameters
 
     // Check if the user exists
     const seeker = await Seeker.findOne({ email: email });
-    if (!seeker) {
-      return res.status(404).json({ message: "User not found" });
+    if(!seeker){
+      
+      return res.status(400).json({
+        response_type: "in_channel",
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: "Seeker not found.",
+            },
+          },
+        ],
+      });
     }
 
     // Delete the user
@@ -119,10 +131,22 @@ const deleteSeekerByName = async (req, res) => {
     // await seeder.deleteOne( {"seeder.email": email})
     await seeker.deleteOne({ email: email });
 
-    res.status(200).json({ message: "Seeker deleted successfully" });
+    res.status(200).json({
+      response_type: "in_channel",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `Perfect! You have been successfully removed from the available seekers list! 🚗`,
+          },
+        },
+      ],
+    });
   } catch (error) {
-    console.error("Error deleting seeder:", error.message);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error deleting seeker:", error.message);
+    next(err);
+    
   }
 };
 

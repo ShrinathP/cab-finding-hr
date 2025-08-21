@@ -32,12 +32,13 @@ router.delete("/users/:email", deleteUserByName);
 router.post("/seeders", express.urlencoded({ extended: true }), createSeeder);
 router.get("/seeders", getSeeders);
 router.get("/seeders/:email", getSeederByName);
-router.delete("/seeders/:email", deleteSeederByName);
+router.post("/seeders/remove", express.urlencoded({ extended: true }),deleteSeederByName);
+// router.put("/seeders/:email/full", markSeederAsFull); 
 
 router.post("/seekers", express.urlencoded({ extended: true }),  createSeeker);
 router.get("/seekers", getSeekers);
 router.get("/seekers/:email", getSeekerByName);
-router.delete("/seekers/:email", deleteSeekerByName);
+router.post("/seekers/remove", express.urlencoded({ extended: true }), deleteSeekerByName);
 
 router.get("/match", runMatch);
 

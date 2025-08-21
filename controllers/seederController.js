@@ -116,26 +116,58 @@ const getSeederByName = async (req, res, next) => {
   }
 };
 
-const deleteSeederByName = async (req, res) => {
+const deleteSeederByName = async (req, res, next) => {
   try {
-    const { email } = req.params; // Extract user ID from the route parameters
+    const { user_name: email } = req.body; // Extract user ID from the route parameters
 
     // Check if the user exists
     const seeder = await Seeder.findOne({ email: email });
-    if (!seeder) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    // if (!seeder) {
+    //   return res.status(404).json({ message: "User not found" });
+    // }
+    if(!seeder){
+    return res.status(404).json({
+      response_type: "in_channel",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: "Seeder not found.",
+          },
+        },
+      ],
+    });
+  }
 
     // Delete the user
     // await seeder.findByIdAndDelete(seeder._id);
     // await seeder.deleteOne( {"seeder.email": email})
     await seeder.deleteOne({ email: email });
 
-    res.status(200).json({ message: "Seeder deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting seeder:", error.message);
-    res.status(500).json({ message: "Internal server error" });
-  }
+//     res.status(200).json({ message: "Seeder deleted successfully" });
+//   } catch (error) {
+//     console.error("Error deleting seeder:", error.message);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+res.status(200).json({
+  response_type: "in_channel",
+  blocks: [
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `Perfect! You have been successfully removed from the available seeders list. Thank you for offering the ride! 🚗`,
+      },
+    },
+  ],
+});
+
+} catch (err) {
+console.error("Error marking seeder as full:", error.message);
+next(err);
+}
 };
 
 module.exports = {
