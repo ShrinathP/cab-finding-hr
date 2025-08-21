@@ -13,14 +13,14 @@ const createSeeker = async (req, res, next) => {
     // Check if the Seeder is a Registered User
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({
+      return res.status(200).json({
         response_type: "in_channel",
         blocks: [
           {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: "The user is not registered, please make sure, you register using POST api",
+              text: "The user is not registered, please make sure, you register using \"/users [location]\" api",
             },
           },
         ],
@@ -112,14 +112,14 @@ const deleteSeekerByName = async (req, res, next) => {
     const seeker = await Seeker.findOne({ email: email });
     if(!seeker){
       
-      return res.status(400).json({
+      return res.status(200).json({
         response_type: "in_channel",
         blocks: [
           {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: "Seeker not found.",
+              text: "You have not started looking for a ride yet. Please find a ride using \"/find-ride [time]\" api",
             },
           },
         ],
@@ -127,8 +127,6 @@ const deleteSeekerByName = async (req, res, next) => {
     }
 
     // Delete the user
-    // await seeder.findByIdAndDelete(seeder._id);
-    // await seeder.deleteOne( {"seeder.email": email})
     await seeker.deleteOne({ email: email });
 
     res.status(200).json({

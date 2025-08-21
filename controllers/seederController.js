@@ -11,14 +11,14 @@ const createSeeder = async (req, res, next) => {
     // Check if the Seeder is a Registered User
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({
+      return res.status(200).json({
         response_type: "in_channel",
         blocks: [
           {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: "The user is not registered, please make sure, you register using POST api",
+              text: "The user is not registered, please make sure, you register using \"/users [location]\" api",
             },
           },
         ],
@@ -53,37 +53,8 @@ const createSeeder = async (req, res, next) => {
   }
 };
 
-// const createSeeder = async (req, res, next) => {
-//   try {
-//     const { name, email, time } = req.body;
-//     convertTo24Hour
-
-//     // Check if Seeder already exists
-//     const seeder = await Seeder.findOne({ email });
-//     if (seeder) {
-//       await seeder.deleteOne({ email: email });
-//       // return res.status(400).json({ message: "Seeker already exists" });
-//     }
-
-//     // Create newSeeder
-//     const newSeeder = new Seeder({ name, email, time });
-//     await newSeeder.save();
-
-//     res.status(201).json({
-//       message: "Seeder created successfully",
-//       seeder: {
-//         id: newSeeder._id,
-//         name: newSeeder.name,
-//         email: newSeeder.email,
-//       },
-//     });
-//   } catch (err) {
-//     next(err); // Pass error to middleware
-//   }
-// };
 
 // GET all seeders
-
 const getSeeders = async (req, res, next) => {
   try {
     const seeders = await Seeder.find(); // Fetch all users
@@ -97,7 +68,6 @@ const getSeeders = async (req, res, next) => {
 const getSeederByName = async (req, res, next) => {
   try {
     const { email } = req.params;
-
     // Find user by ID
     const seeder = await Seeder.findOne({
       $or: [
@@ -122,18 +92,16 @@ const deleteSeederByName = async (req, res, next) => {
 
     // Check if the user exists
     const seeder = await Seeder.findOne({ email: email });
-    // if (!seeder) {
-    //   return res.status(404).json({ message: "User not found" });
-    // }
+    
     if(!seeder){
-    return res.status(404).json({
+    return res.status(200).json({
       response_type: "in_channel",
       blocks: [
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: "Seeder not found.",
+            text: "You haven't offered any ride yet. Please offer a ride using \"/offer-ride [time]\" api",
           },
         },
       ],
