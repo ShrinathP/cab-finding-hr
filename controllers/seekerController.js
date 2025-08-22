@@ -118,7 +118,7 @@ const deleteSeekerByName = async (req, res, next) => {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: "You have not started looking for a ride yet. Please find a ride using \"/find-ride [time]\" api",
+              text: "You have not started looking for a ride yet. Please find a ride using \"/find-ride-after [time]\" api",
             },
           },
         ],

@@ -5,4 +5,4 @@
 [-] User registered, not offered ride, then tried to Ride full, showing dispatch failed, should get /offer ride error
 [-] User registered, find ride, then tried the ride found, it is deleting seeker
 [-] User registered, not finding ride, then tries ride found, it is showing dispatch failed, should get /find ride error
-[-] Exclude same name /offer-ride + /find-ride at the same time
+[-] Exclude same name /offer-ride-at + /find-ride-after at the same time

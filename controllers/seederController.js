@@ -100,7 +100,7 @@ const deleteSeederByName = async (req, res, next) => {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: "You haven't offered any ride yet. Please offer a ride using \"/offer-ride [time]\" api",
+            text: "You haven't offered any ride yet. Please offer a ride using \"/offer-ride-at [time]\" api",
           },
         },
       ],

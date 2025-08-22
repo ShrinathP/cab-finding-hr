@@ -193,7 +193,7 @@ const confirmUser = async (req, res, next) => {
         
 
         const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
-        messageText = `✅ Location for *${name}* confirmed!\n\n📍 **Selected Location:** ${location}\n🔗 <${mapsUrl}|View on Google Maps>\n\n🎉 You have been registered successfully!\n\n**Next Steps:**\n• Use \`/offer-ride [time]\` to offer rides\n• Use \`/find-ride [time]\` to find carpool options`;
+        messageText = `✅ Location for *${name}* confirmed!\n\n📍 **Selected Location:** ${location}\n🔗 <${mapsUrl}|View on Google Maps>\n\n🎉 You have been registered successfully!\n\n**Next Steps:**\n• Use \`/offer-ride-at [time]\` to offer rides\n• Use \`/find-ride-after [time]\` to find carpool options`;
       } catch (error) {
         console.error('Error creating user:', error);
         messageText = `❌ Error creating user: ${error.message}. Please try again.`;
