@@ -37,10 +37,10 @@ const createSeeker = async (req, res, next) => {
     const newSeeker = new Seeker({ name, email, time });
     await newSeeker.save();
 
-    const result = await match.matchSeeker(name, email, time);
-    // console.log('Shrinath' + result);
-    let responseMessage;
+    let result = await match.matchSeeker(name, email, time);
     result = result.filter((s) => !s.name.includes(email))
+    
+    let responseMessage;
     if (result.length == 0) {
       responseMessage = "We haven't got any car pool match for you right away. We will message you as and when we get one.";
     } else {
